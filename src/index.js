@@ -46,7 +46,6 @@ function showCountry(data) {
   } else if (data.length > 1 && data.length <= 10) {
     refs.cardContainer.innerHTML = countryes(data);
   } else if (data.length > 10) {
-    // resetPage();
     err();
   }
 }
