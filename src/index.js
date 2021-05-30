@@ -26,7 +26,8 @@ function fetchCountries(countrySearch) {
       }
     })
     .then(showCountry)
-    .catch(console.error());
+    .catch(console.error())
+    .finally(() => (refs.input.value = ''));
 }
 
 refs.input.addEventListener(
