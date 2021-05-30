@@ -15,19 +15,15 @@ const refs = {
 };
 
 function fetchCountries(countrySearch) {
-  return fetch(`https://restcountries.eu/rest/v2/name/${countrySearch}`)
-    .then(response => {
-      // console.log(response);
-      if (!response.ok) {
-        alert('Bad Request!!!');
-        throw new Error('Bad Request!!!');
-      } else {
-        return response.json();
-      }
-    })
-    .then(showCountry)
-    .catch(console.error())
-    .finally(() => (refs.input.value = ''));
+  return fetch(`https://restcountries.eu/rest/v2/name/${countrySearch}`).then(response => {
+    // console.log(response);
+    if (!response.ok) {
+      alert('Bad Request!!!');
+      throw new Error('Bad Request!!!');
+    } else {
+      return response.json();
+    }
+  });
 }
 
 refs.input.addEventListener(
@@ -36,7 +32,10 @@ refs.input.addEventListener(
     let countrySearch = refs.input.value;
     // console.log('countrySearch', countrySearch);
     if (!countrySearch) return;
-    fetchCountries(countrySearch);
+    fetchCountries(countrySearch)
+      .then(showCountry)
+      .catch(console.error())
+      .finally(() => (refs.input.value = ''));
   }, 500),
 );
 
