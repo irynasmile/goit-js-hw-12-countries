@@ -1,74 +1,59 @@
-
-// import './fetchCountries';
-import fetchCountries from './fetchCountries';
-console.log(fetchCountries);
 import debounce from 'lodash.debounce';
-import template from './templates/markup_template.hbs';
+import countryes from './templates/markup_countryes.hbs';
+// console.log('countryes:', countryes);
+import country from './templates/markup_country.hbs';
+// console.log('country:', country());
+import '@pnotify/core/dist/BrightTheme.css';
+import * as PNotify from '@pnotify/core/dist/PNotify.js';
+import '@pnotify/core/dist/PNotify.css';
 import '@pnotify/core/dist/BrightTheme.css';
 import './sass/main.scss';
 
-const inputArea = document.createElement('input');
-inputArea.placeholder = 'Write country name';
-inputArea.classList.add('input_country');
+const refs = {
+  input: document.querySelector('.input'),
+  cardContainer: document.querySelector('.card-container'),
+};
 
-const fetchResultContainer = document.createElement('div');
-fetchResultContainer.classList.add('fetch-result-container');
-const body = document.querySelector('body');
-body.append(inputArea, fetchResultContainer);
-
-inputArea.addEventListener('input', debounce(onSearch,1000));
-
-function onSearch(e) {
-  const value = e.target.value;
-  fetchCountries(value)
-    .then(country => {
-      if (country.length < 2) {
-        renderCountryCard(country);
-      } else if (2 <= country.length && country.length <= 10) {
-        renderCountryList(country);
-      } else if (country.length > 10) {
-        noticeModal();
+function fetchCountries(countrySearch) {
+  return fetch(`https://restcountries.eu/rest/v2/name/${countrySearch}`)
+    .then(response => {
+      // console.log(response);
+      if (!response.ok) {
+        alert('Bad Request!!!');
+        throw new Error('Bad Request!!!');
+      } else {
+        return response.json();
       }
     })
-    .catch(error => {
-      console.log(error);
-    })
-    .finally(() => (inputArea.value = ''));
+    .then(showCountry)
+    .catch(console.error());
 }
 
-const renderCountryCard = function (country) {
-  country.map(el => {
-    const countryCardMarkup = template(el);
-    fetchResultContainer.innerHTML = countryCardMarkup;
+refs.input.addEventListener(
+  'input',
+  debounce(() => {
+    let countrySearch = refs.input.value;
+    // console.log('countrySearch', countrySearch);
+    if (!countrySearch) return;
+    fetchCountries(countrySearch);
+  }, 500),
+);
+
+function showCountry(data) {
+  console.log('data :', data);
+  if (data.length === 1) {
+    refs.cardContainer.innerHTML = country(data);
+  } else if (data.length > 1 && data.length <= 10) {
+    refs.cardContainer.innerHTML = countryes(data);
+  } else if (data.length > 10) {
+    // resetPage();
+    err();
+  }
+}
+
+function err() {
+  PNotify.error({
+    title: 'Oh No!',
+    text: 'Too many mathes found. please enter a more specific query!',
   });
-};
-
-const renderCountryList = function (country) {
-
-    const countryListMarkup = '<ul class="country-list"></ul>';
-  fetchResultContainer.innerHTML = countryListMarkup;
-  const countryList = document.querySelector('.country-list');
-
-    country.map(el => {
-    const carrentCountry = document.createElement('li');
-    countryList.append(carrentCountry);
-    carrentCountry.textContent = el.name;
-  });
-};
-
-const noticeModal = function () {
-  const myNotice = notice({
-    text: 'Too many matches found. Please enter a more specific query!',
-    type: 'notice',
-    title: 'Attention!',
-    addClass: 'notice-modal',
-    addModalClass: 'notice-modal',
-    width: '265px',
-    minHeight: '160px',
-    shadow: true,
-    delay: 8000,
-    closer: true,
-    remove: true,
-    destroy: true,
-  });
-};
+}
